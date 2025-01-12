@@ -12,32 +12,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Move issue to 'Done' column when issue is closed
+      # Move the closed issue to the "Done" column
       - name: Move issue to Done
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{"column_id": "PROJECT_COLUMN_ID", "content_type": "Issue", "content_id": "'${{ github.event.issue.id }}'"}' \
             https://api.github.com/projects/columns/PROJECT_COLUMN_ID/cards
-
-  add-issue-to-project:
-    runs-on: ubuntu-latest
-    steps:
-      # Add closed issue to project
-      - name: Add Issue to Project
-        uses: peter-evans/create-or-update-project-card@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          project-location: "Georges034302/task-manager-docker" # Replace with your repository location
-          project-number: 1 # Replace with your project number
-          issue-number: ${{ github.event.issue.number }}
-
-  close-issue:
-    runs-on: ubuntu-latest
-    needs: add-issue-to-project
-    steps:
-      # Close the issue automatically after it's added to the project
-      - name: Close Issue
-        run: |
-          curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"state": "closed"}' \
-            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}
