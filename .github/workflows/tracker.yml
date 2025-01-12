@@ -1,0 +1,38 @@
+name: Move Issue to Done on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  move-issue-to-done:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Git configuration
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Get Issue Number from PR Description
+        id: issue
+        run: |
+          echo "::set-output name=issue_number::$(echo '${{ github.event.pull_request.body }}' | grep -o '#[0-9]*' | head -n 1 | sed 's/#//')"
+
+      - name: Move Issue to Done in GitHub Project
+        uses: actions/add-to-project@v1
+        with:
+          project_id: "1"   # Replace with your project ID
+          column_name: "Done"
+          issue_number: ${{ steps.issue.outputs.issue_number }}
+
+      - name: Close the issue
+        run: |
+          curl -X PATCH \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d '{"state": "closed"}' \
+          "https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.issue.outputs.issue_number }}"
