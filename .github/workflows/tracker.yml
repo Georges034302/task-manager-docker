@@ -1,38 +1,48 @@
-name: Move Issue to Done on PR Merge
+name: GitHub Projects Automation
 
 on:
   pull_request:
-    types:
-      - closed
+    types: [opened, synchronize, closed]
+  issues:
+    types: [opened, closed]
 
 jobs:
   move-issue-to-done:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      # Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Git configuration
+      # Check if the PR is merged (for automatic moving of the issue)
+      - name: Check if PR is merged
+        if: github.event.pull_request.merged == true
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions@github.com"
+          echo "Pull Request merged, moving issue to DONE"
+          
+          # Add the issue to the DONE column in the project
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"column_id": "PROJECT_COLUMN_ID", "content_type": "Issue", "content_id": "'${{ github.event.issue.id }}'"}' \
+            https://api.github.com/projects/columns/PROJECT_COLUMN_ID/cards
 
-      - name: Get Issue Number from PR Description
-        id: issue
-        run: |
-          echo "::set-output name=issue_number::$(echo '${{ github.event.pull_request.body }}' | grep -o '#[0-9]*' | head -n 1 | sed 's/#//')"
-
-      - name: Move Issue to Done in GitHub Project
-        uses: actions/add-to-project@v1
+  add-issue-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      # Add the issue to the project if it's a new issue
+      - name: Add Issue to Project
+        uses: peter-evans/create-or-update-project-card@v2
         with:
-          project_id: "1"   # Replace with your project ID
-          column_name: "Done"
-          issue_number: ${{ steps.issue.outputs.issue_number }}
+          project-url: "https://github.com/your-org/your-repo/projects/1" # Replace with your project URL
+          issue-url: ${{ github.event.issue.url }}
 
-      - name: Close the issue
+  close-issue:
+    runs-on: ubuntu-latest
+    needs: add-issue-to-project
+    steps:
+      # Close the issue if it's marked as done or completed
+      - name: Close Issue Automatically
+        if: github.event.pull_request.merged == true
         run: |
-          curl -X PATCH \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          -d '{"state": "closed"}' \
-          "https://api.github.com/repos/${{ github.repository }}/issues/${{ steps.issue.outputs.issue_number }}"
+          curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"state": "closed"}' \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}
