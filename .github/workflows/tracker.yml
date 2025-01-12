@@ -1,10 +1,8 @@
 name: GitHub Projects Automation
 
 on:
-  pull_request:
-    types: [opened, synchronize, closed]
   issues:
-    types: [opened, closed]
+    types: [closed]
 
 jobs:
   move-issue-to-done:
@@ -14,24 +12,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Check if the PR is merged (for automatic moving of the issue)
-      - name: Check if PR is merged
-        if: github.event.pull_request.merged == true
+      # Move issue to 'Done' column when issue is closed
+      - name: Move issue to Done
         run: |
-          echo "Pull Request merged, moving issue to DONE"
-          
-          # Replace with your actual GitHub project column ID for the "Done" column
-          DONE_COLUMN_ID="your-done-column-id"
-
-          # Add the issue to the DONE column in the project
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"column_id": "'${DONE_COLUMN_ID}'", "content_type": "Issue", "content_id": "'${{ github.event.pull_request.issue.id }}'"}' \
-            https://api.github.com/projects/columns/cards
+            -d '{"column_id": "PROJECT_COLUMN_ID", "content_type": "Issue", "content_id": "'${{ github.event.issue.id }}'"}' \
+            https://api.github.com/projects/columns/PROJECT_COLUMN_ID/cards
 
   add-issue-to-project:
     runs-on: ubuntu-latest
-    if: github.event.action == 'opened' # Only run for new issues
     steps:
+      # Add closed issue to project
       - name: Add Issue to Project
         uses: peter-evans/create-or-update-project-card@v2
         with:
@@ -42,12 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: add-issue-to-project
     steps:
-      # Close the issue if it's marked as done or completed (on PR merge)
-      - name: Close Issue Automatically
-        if: github.event.pull_request.merged == true
+      # Close the issue automatically after it's added to the project
+      - name: Close Issue
         run: |
-          echo "Pull Request merged, closing the issue automatically"
-          
           curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{"state": "closed"}' \
-            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.issue.number }}
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}
