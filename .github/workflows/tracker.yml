@@ -26,8 +26,10 @@ jobs:
       - name: Add Issue to Project
         uses: peter-evans/create-or-update-project-card@v2
         with:
-          project-url: "https://github.com/your-org/your-repo/projects/1" # Replace with your project URL
-          issue-url: ${{ github.event.issue.url }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          project-location: "Georges034302/task-manager-docker" # Replace with your repository location
+          project-number: 1 # Replace with your project number
+          issue-number: ${{ github.event.issue.number }}
 
   close-issue:
     runs-on: ubuntu-latest
