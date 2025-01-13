@@ -18,22 +18,21 @@ update_pre() {
   local content="$2"
   local html_file="$3"
 
-  # Escape special characters for sed within double quotes
-  local escaped_content=$(printf '%s' "$content" | sed 's/[&/\\$]/\\&/g; s/"/\\"/g; s/'"'/\\'"'/g')
+  # Escape special characters for sed (using # as delimiter)
+  local escaped_content=$(printf '%s' "$content" | sed 's/[&\\$]/\\&/g; s/"/\\"/g; s/'"'/\\'"'/g; s/#/\\#/g')
 
-  # Use sed to replace the content within the <pre> block
+  # Use sed to replace the content within the <pre> block (using # as delimiter)
   sed -i -E "/<pre id=\"$pre_id\">/,/<\/pre>/ {
     /<pre id=\"$pre_id\">/ {
-      s/<pre id=\"$pre_id\">/<pre id=\"$pre_id\">\n$escaped_content/
+      s#<pre id=\"$pre_id\">#<pre id=\"$pre_id\">\n$escaped_content#
       n
     }
     /<\/pre>/ {
-      s/<\/pre>/\n<\/pre>/
+      s#<\/pre>#\n<\/pre>#
     }
     /./d
   }" "$html_file"
 }
-
 
 # Use the function to update all pre blocks
 update_pre "pending" "$TODO_TASKS" "$HTML_FILE"
