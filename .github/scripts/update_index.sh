@@ -13,10 +13,10 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Temporary backup of the original index.html file
 cp /app/index.html /app/index.html.bak
 
-# Remove all existing sections from the body (Pending Tasks, Completed Tasks, Unit Test Results)
+# Remove all existing body content (sections)
 sed -i '/<body>/,/<\/body>/ { /<section>/,/<\/section>/d }' /app/index.html
 
-# Add the Pending Tasks section
+# Add the Pending Tasks section with unique tasks
 cat <<EOF >> /app/index.html
 <body>
     <section>
