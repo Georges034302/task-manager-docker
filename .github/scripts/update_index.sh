@@ -19,24 +19,26 @@ update_pre() {
   local html_file="$3"
 
   awk -v pre_id="$pre_id" -v content="$content" '
+    BEGIN { in_pre = 0 }
     {
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print
+        print  # Print the opening <pre> tag
         split(content, lines, "\n")
         for (i in lines) {
           if (lines[i] != "") {
-            print lines[i]
+            print lines[i] # Print each line of the new content
           }
         }
-        while (getline) {
-          print
-          if ($0 ~ /<\/pre>/) {
-            break
-          }
-        }
-        next
+        in_pre = 1
+        next # Skip the rest of the current line
+      } else if (in_pre && $0 ~ /<\/pre>/) {
+        print # Print the closing </pre> tag
+        in_pre = 0
+        next # Skip the rest of the current line
+      } else if (in_pre) {
+        next # Skip lines within the existing <pre> block
       }
-      print
+      print # Print all other lines
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
