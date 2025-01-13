@@ -8,6 +8,7 @@ DONE_TASKS=$(awk '/Done Tasks:/,/^[[:space:]]*$/ { \
                   if(NR>1 && !/Done Tasks:/)print}' "$1")
 UNIT_TEST_RESULTS=$(cat "$2")
 
+# function to update the pre-tag with section data
 update_pre() {
   perl -i -0777 -pe "s{<pre id=\"$1\">.*?</pre>}{
 <pre id=\"$1\">\n$2\n</pre>}gs" "$3"
