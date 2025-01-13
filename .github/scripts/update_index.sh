@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Check if index.html exists
-if [[ ! -f /app/index.html ]]; then
-    echo "Error: /app/index.html not found. Exiting."
-    exit 1
-fi
-
 # Read content from the todo output and test output
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
@@ -13,38 +7,37 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Temporary backup of the original index.html file
 cp /app/index.html /app/index.html.bak
 
-# Remove all existing body content (sections)
-sed -i '/<body>/,/<\/body>/ { /<section>/,/<\/section>/d }' /app/index.html
+# Remove the second body tag (if exists) and clean up any extra content
+sed -i 's|</body>||g' /app/index.html
+sed -i 's|<body>||g' /app/index.html
 
-# Add the Pending Tasks section with unique tasks
-cat <<EOF >> /app/index.html
-<body>
-    <section>
-        <h2>Pending Tasks</h2>
-        <ul id="pending">
-            <li>ToDo Tasks:</li>
-            $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
-        </ul>
-    </section>
-    
-    <section>
-        <h2>Completed Tasks</h2>
-        <ul id="completed">
-            <li>Add Login UI</li>
-            <li>Fix UI Bug</li>
-            <li>Write Tests</li>
-        </ul>
-    </section>
-
-    <section>
-        <h2>Unit Test Results</h2>
-        <pre id="unittest">
-            $(echo "$TEST_CONTENT")
-        </pre>
-    </section>
-</body>
-</html>
-EOF
+# Add the content to the existing body
+sed -i "/<\/html>/i \
+<body>\n\
+    <section>\n\
+        <h2>Pending Tasks</h2>\n\
+        <ul id=\"pending\">\n\
+            <li>ToDo Tasks:</li>\n\
+            $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')\n\
+        </ul>\n\
+    </section>\n\
+    \n\
+    <section>\n\
+        <h2>Completed Tasks</h2>\n\
+        <ul id=\"completed\">\n\
+            <li>Add Login UI</li>\n\
+            <li>Fix UI Bug</li>\n\
+            <li>Write Tests</li>\n\
+        </ul>\n\
+    </section>\n\
+    \n\
+    <section>\n\
+        <h2>Unit Test Results</h2>\n\
+        <pre id=\"unittest\">\n\
+            $(echo "$TEST_CONTENT")\n\
+        </pre>\n\
+    </section>\n\
+</body>" /app/index.html
 
 # Configure Git to use GitHub Actions user and email
 git config --global user.name "github-actions"
