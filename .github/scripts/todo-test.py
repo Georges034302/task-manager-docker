@@ -1,34 +1,52 @@
-import pytest
+import unittest
 from todo import Task, TaskPool
+from io import StringIO
+import sys
 
-# Test to check if Task creation works as expected
-def test_task_creation():
-    task = Task("Test Task")
-    assert task.title == "Test Task"
-    assert not task.completed  # Default value for completion should be False
+class TestTaskPool(unittest.TestCase):
 
-# Test to mark a task as completed
-def test_task_mark_completed():
-    task = Task("Test Task")
-    task.mark_completed()
-    assert task.completed is True
+    def setUp(self):
+        self.pool = TaskPool()
 
-# Test TaskPool population
-def test_task_pool_population():
-    pool = TaskPool()
-    pool.populate()
-    tasks = pool.get_tasks()
-    assert len(tasks) > 0  # Ensure there are tasks in the pool after population
+    def test_add_task(self):
+        task = Task("New Task")
+        self.pool.add_task(task)
+        self.assertEqual(len(self.pool.tasks), 1)
 
-# Test if a task is correctly moved to Done
-def test_task_move_to_done():
-    pool = TaskPool()
-    pool.populate()
-    task = pool.get_tasks()[0]  # Get first task from populated pool
-    task.mark_completed()
+    def test_get_open_tasks(self):
+        self.pool.populate()
+        open_tasks = self.pool.get_open_tasks()
+        self.assertEqual(len(open_tasks), 3)
+        self.assertTrue(all(task.status == "ToDo" for task in open_tasks))
+
+    def test_get_done_tasks(self):
+        self.pool.populate()
+        done_tasks = self.pool.get_done_tasks()
+        self.assertEqual(len(done_tasks), 3)
+        self.assertTrue(all(task.status == "Done" for task in done_tasks))
+
+if __name__ == "__main__":
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestTaskPool)
     
-    # Test if the task is completed
-    assert task.completed is True
+    captured_output = StringIO()
 
-    # Here you can also test that the task appears in the 'done' section,
-    # but that requires you to mock the behavior of TaskPool's done logic or interact with an actual project board API.
+    # Run tests with verbosity 2 (detailed)
+    result = unittest.TextTestRunner(stream=captured_output, verbosity=2).run(suite)
+
+    # Capture the relevant output (test names and "ok")
+    output_lines = captured_output.getvalue().splitlines()
+
+    # Print the output of each test with the status "ok"
+    for line in output_lines:
+        if "ok" in line:
+            # Remove the class name and method name from the line, keeping only the test name
+            print(line.split(' ')[0] + ' ... ok')
+
+    # Print total, passed, and failed summary
+    total_tests = result.testsRun
+    failed_tests = [t[0] for t in result.failures + result.errors]
+    passed_tests = [test for test in suite if test not in failed_tests]
+
+    print(f"Total Tests: {total_tests}")
+    print(f"Passed: {len(passed_tests)} ({(len(passed_tests) / total_tests) * 100:.2f}%)")
+    print(f"Failed: {len(failed_tests)} ({(len(failed_tests) / total_tests) * 100:.2f}%)")
