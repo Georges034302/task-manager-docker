@@ -42,7 +42,7 @@ update_pre() {
       print  # Print all other lines outside the <pre> block
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
-}
+}'
 
 # Use the function to update all pre blocks
 update_pre "pending" "$TODO_TASKS" "$HTML_FILE"
