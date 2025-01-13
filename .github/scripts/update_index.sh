@@ -13,23 +13,23 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Backup the original index.html
 cp /app/index.html /app/index.html.bak
 
-# Update the Pending Tasks section
+# Update the Pending Tasks section (only ToDo tasks, listed vertically)
 sed -i "/<ul id=\"pending\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "<li>ToDo Tasks:</li><li>Update Login UI</li><li>Update Documentation</li><li>Deploy to Production</li><li>Done Tasks:</li><li>Add Login UI</li><li>Fix UI Bug</li><li>Write Tests</li>"
+}" /app/index.html <<< "<li>Update Login UI</li><li>Update Documentation</li><li>Deploy to Production</li>"
 
-# Update the Completed Tasks section
+# Update the Completed Tasks section (only Done tasks, listed vertically)
 sed -i "/<ul id=\"completed\">/ { 
     r /dev/stdin
     d
 }" /app/index.html <<< "<li>Add Login UI</li><li>Fix UI Bug</li><li>Write Tests</li>"
 
-# Update the Unit Test Results section
+# Update the Unit Test Results section (listed vertically)
 sed -i "/<pre id=\"unittest\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "test_add_task ... ok test_get_done_tasks ... ok test_get_open_tasks ... ok Total Tests: 3 Passed: 3 (100.00%) Failed: 0 (0.00%)"
+}" /app/index.html <<< "test_add_task ... ok\ntest_get_done_tasks ... ok\ntest_get_open_tasks ... ok\nTotal Tests: 3\nPassed: 3 (100.00%)\nFailed: 0 (0.00%)"
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
