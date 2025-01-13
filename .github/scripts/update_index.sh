@@ -15,6 +15,11 @@ UNIT_TEST_RESULTS=$(cat "$2")
 # Backup the original HTML file to prevent data loss
 cp "$HTML_FILE" "$HTML_FILE.bak"
 
+# Escape special characters like < and > for use in sed commands
+TODO_TASKS=$(echo "$TODO_TASKS" | sed 's/[&/\]/\\&/g')
+DONE_TASKS=$(echo "$DONE_TASKS" | sed 's/[&/\]/\\&/g')
+UNIT_TEST_RESULTS=$(echo "$UNIT_TEST_RESULTS" | sed 's/[&/\]/\\&/g')
+
 # Replace the Pending Tasks section with ToDo tasks
 # The sed command here will replace the <ul id="pending"> section and its contents
 sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
