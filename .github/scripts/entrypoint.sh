@@ -3,7 +3,7 @@
 echo "======================"
 echo "Executing todo.py"
 echo "======================"
-python3 /app/.github/scripts/todo.py tee /app/todo_output.txt
+python3 /app/.github/scripts/todo.py > /app/todo_output.txt
 
 echo "======================"
 echo "Executing todo-test.py"
