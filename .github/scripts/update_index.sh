@@ -15,27 +15,24 @@ UNIT_TEST_RESULTS=$(cat "$2")
 # Backup the original HTML file to prevent data loss
 cp "$HTML_FILE" "$HTML_FILE.bak"
 
-# Escape special characters like < and > for use in sed commands
+# Escape special characters for sed usage
 TODO_TASKS=$(echo "$TODO_TASKS" | sed 's/[&/\]/\\&/g')
 DONE_TASKS=$(echo "$DONE_TASKS" | sed 's/[&/\]/\\&/g')
 UNIT_TEST_RESULTS=$(echo "$UNIT_TEST_RESULTS" | sed 's/[&/\]/\\&/g')
 
 # Replace the Pending Tasks section with ToDo tasks
-# The sed command here will replace the <ul id="pending"> section and its contents
 sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
 <ul id=\"pending\">\\
 $TODO_TASKS\\
 </ul>" "$HTML_FILE"
 
 # Replace the Completed Tasks section with Done tasks
-# The sed command here will replace the <ul id="completed"> section and its contents
 sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
 <ul id=\"completed\">\\
 $DONE_TASKS\\
 </ul>" "$HTML_FILE"
 
 # Replace the Unit Test Results section with the actual test results
-# The sed command here will replace the <pre id="unittest"> section and its contents
 sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
 <pre id=\"unittest\">\\
 $UNIT_TEST_RESULTS\\
