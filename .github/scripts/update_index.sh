@@ -22,22 +22,24 @@ update_pre() {
     BEGIN { in_pre = 0 }
     {
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print
+        print  # Print the opening <pre> tag
         split(content, lines, "\n")
         for (i in lines) {
           if (lines[i] != "") {
-            printf "%s\n", lines[i]
+            printf "%s\n", lines[i] # Print each line with a newline
           }
         }
-        in_pre = 1
-        next
+        in_pre = 1 # Set the flag to indicate we're inside the <pre>
+        while (getline) { # Read and discard lines until closing </pre>
+          if ($0 ~ /<\/pre>/) {
+            print # Print the closing </pre> tag
+            in_pre = 0 # Reset the flag
+            break # Exit the while loop
+          }
+        }
+        next # Skip the rest of the main awk loop for this line
       }
-      if (in_pre && $0 ~ /<\/pre>/) {
-        print
-        in_pre = 0
-        next
-      }
-      print
+      print  # Print all other lines outside the <pre> block
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
