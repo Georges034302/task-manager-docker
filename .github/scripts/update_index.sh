@@ -20,18 +20,20 @@ update_pre() {
 
   awk -v pre_id="$pre_id" -v content="$content" '
     BEGIN { in_pre = 0 }
-    $0 ~ "<pre id=\"" pre_id "\">" { # Correct way to use pre_id as a variable
-      print "<pre id=\"" pre_id "\">"
-      print content
-      in_pre = 1
-      next
+    {
+        if ($0 ~ "<pre id=\"" pre_id "\">") {
+            print $0
+            print content
+            in_pre = 1
+            next
+        }
+        if (in_pre && $0 ~ /<\/pre>/) {
+            print $0
+            in_pre = 0
+            next
+        }
+        print $0
     }
-    in_pre && /<\/pre>/ {
-      print "</pre>"
-      in_pre = 0
-      next
-    }
-    !in_pre { print }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
 
