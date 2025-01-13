@@ -12,7 +12,7 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to update pre blocks (using awk)
+# Function to update pre blocks (using awk - Vertical Listing Fixed)
 update_pre() {
   local pre_id="$1"
   local content="$2"
@@ -20,25 +20,23 @@ update_pre() {
 
   awk -v pre_id="$pre_id" -v content="$content" '
     BEGIN { in_pre = 0 }
-    {
-      if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print  # Print the opening <pre> tag
-        split(content, lines, "\n")
-        for (i in lines) {
-          if (lines[i] != "") {
-            printf "%s\n", lines[i] # Print each line with a newline
-          }
+    /<pre id="'"$pre_id"'">/ {
+      print
+      split(content, lines, "\n")
+      for (i in lines) {
+        if (lines[i] != "") {
+          print lines[i]  # Each line of content printed vertically
         }
-        in_pre = 1
-        next
       }
-      /<\/pre>/ && in_pre {
-        print  # Print the closing </pre> tag
-        in_pre = 0
-        next
-      }
-      print  # Print all other lines
+      in_pre = 1
+      next
     }
+    /<\/pre>/ && in_pre {
+      print
+      in_pre = 0
+      next
+    }
+    { print }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
 
