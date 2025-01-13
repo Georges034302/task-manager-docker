@@ -1,26 +1,35 @@
 #!/bin/bash
 
+# Check if index.html exists
+if [[ ! -f /app/index.html ]]; then
+    echo "Error: /app/index.html not found. Exiting."
+    exit 1
+fi
+
 # Read content from the todo output and test output
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Update the Pending Tasks section
-sed -i "/<ul id=\"pending\">/{
-    r <(echo \"$TODO_CONTENT\" | sed 's/^/<li>/;s/$/<\/li>/')
-    d
-}" /app/index.html
+# Backup the original index.html
+cp /app/index.html /app/index.html.bak
 
-# Update the Completed Tasks section
-sed -i "/<ul id=\"completed\">/{
-    r <(echo \"<li>Add Login UI</li><li>Fix UI Bug</li><li>Write Tests</li>\")
+# Update the Pending Tasks section
+sed -i "/<ul id=\"pending\">/ { 
+    r /dev/stdin
     d
-}" /app/index.html
+}" /app/index.html <<< "$TODO_CONTENT"
+
+# Update the Completed Tasks section (modify the content as needed)
+sed -i "/<ul id=\"completed\">/ { 
+    r /dev/stdin
+    d
+}" /app/index.html <<< "<li>Add Login UI</li><li>Fix UI Bug</li><li>Write Tests</li>"
 
 # Update the Unit Test Results section
-sed -i "/<pre id=\"unittest\">/{
-    r <(echo \"$TEST_CONTENT\")
+sed -i "/<pre id=\"unittest\">/ { 
+    r /dev/stdin
     d
-}" /app/index.html
+}" /app/index.html <<< "$TEST_CONTENT"
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
