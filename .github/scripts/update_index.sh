@@ -3,7 +3,7 @@
 # File where HTML content is located
 HTML_FILE="index.html"
 
-# Read the ToDo tasks from $1 (pending tasks)
+# Read the ToDo tasks from $1 (pending tasks
 TODO_TASKS=$(grep -A 1000 "ToDo Tasks:" "$1" | grep -B 1000 "Done Tasks:" | sed '1d;$d' | sed 's/^/<li>/;s/$/<\/li>/')
 
 # Read the Unit Test results from $2
@@ -19,6 +19,7 @@ $TODO_TASKS\\
 sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
 <pre id=\"unittest\">\\
 $UNIT_TEST_RESULTS\\
+<\/pre>" $HTML_FILE
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
