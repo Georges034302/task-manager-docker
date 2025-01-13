@@ -20,24 +20,36 @@ sed -i '/<section>\s*<h2>Completed Tasks<\/h2>/,/<\/section>/d' /app/index.html
 sed -i '/<section>\s*<h2>Unit Test Results<\/h2>/,/<\/section>/d' /app/index.html
 
 # Add the new Pending Tasks, Completed Tasks, and Unit Test Results
-# Escape slashes and newlines correctly to avoid sed errors
-sed -i "/<body>/a \\
-<section>\\
-    <h2>Pending Tasks</h2>\\
-    <ul id='pending'>\\
-        $(echo "$TODO_CONTENT" | sed 's/$/\\n/g')\\
-    </ul>\\
-</section>\\
-<section>\\
-    <h2>Completed Tasks</h2>\\
-    <ul id='completed'>\\
-        $(echo "$TODO_CONTENT" | sed 's/$/\\n/g')\\
-    </ul>\\
-</section>\\
-<section>\\
-    <h2>Unit Test Results</h2>\\
-    <pre id='unittest'>$(echo "$TEST_CONTENT" | sed 's/$/\\n/g')</pre>\\
-</section>" /app/index.html
+
+# Create a temporary content file to store the new HTML section
+cat <<EOF > /tmp/new_content.html
+<section>
+    <h2>Pending Tasks</h2>
+    <ul id="pending">
+        $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
+    </ul>
+</section>
+
+<section>
+    <h2>Completed Tasks</h2>
+    <ul id="completed">
+        $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
+    </ul>
+</section>
+
+<section>
+    <h2>Unit Test Results</h2>
+    <pre id="unittest">
+        $(echo "$TEST_CONTENT")
+    </pre>
+</section>
+EOF
+
+# Insert the new content after the <body> tag
+sed -i "/<body>/r /tmp/new_content.html" /app/index.html
+
+# Clean up the temporary content file
+rm /tmp/new_content.html
 
 # Configure Git to use GitHub Actions user and email
 git config --global user.name "github-actions"
