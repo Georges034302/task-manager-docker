@@ -19,6 +19,12 @@ jobs:
           echo "Pull Request merged, moving associated issue to DONE."
 
           # Move the associated issue to the "Done" column in the project
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"column_id": "PROJECT_COLUMN_ID", "content_type": "Issue", "content_id": "'${{ github.event.issue.id }}'"}' \
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "column_id": "PROJECT_COLUMN_ID",
+              "content_type": "Issue",
+              "content_id": ${{ github.event.issue.id }} # Corrected syntax
+            }' \
             https://api.github.com/projects/columns/PROJECT_COLUMN_ID/cards
