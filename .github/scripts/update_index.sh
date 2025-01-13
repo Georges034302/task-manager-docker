@@ -10,7 +10,7 @@ fi
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Split tasks into individual list items
+# Split tasks into individual list items for Pending Tasks
 PENDING_LIST=$(echo "$TODO_CONTENT" | sed 's/^/ <li>/;s/$/<\/li>/')
 COMPLETED_LIST=$(echo "$TEST_CONTENT" | sed 's/^/ <li>/;s/$/<\/li>/')
 
