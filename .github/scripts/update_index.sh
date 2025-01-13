@@ -21,18 +21,22 @@ update_pre() {
   awk -v pre_id="$pre_id" -v content="$content" '
     {
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print  # Print the <pre> tag
-        print content
-        while (getline) {
+        print "<pre id=\"" pre_id "\">"  # Print opening tag
+        split(content, lines, "\n")       # Split content into lines
+        for (i in lines) {
+          if (lines[i] != "") {       # Skip empty lines
+            print lines[i]
+          }
+        }
+        while (getline) {           # Consume lines until closing tag
           if ($0 ~ /<\/pre>/) {
-            print # Print the </pre> tag
+            print             # Print the closing tag
             break
           }
-           print # print content inside pre
         }
-        next # Skip to the next line of the HTML file
+        next                      # Important: Skip default print
       }
-      print # Print all other lines
+      print                       # Print all other lines
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
