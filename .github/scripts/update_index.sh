@@ -10,12 +10,17 @@ fi
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Split tasks into individual list items for Pending Tasks and Completed Tasks
-PENDING_LIST=$(echo "$TODO_CONTENT" | grep -E '^ToDo Tasks:|^Update|^Deploy|^Documentation' | sed 's/^/ <li>/;s/$/<\/li>/')
-COMPLETED_LIST=$(echo "$TODO_CONTENT" | grep -E '^Done Tasks:|^Add|^Fix|^Write' | sed 's/^/ <li>/;s/$/<\/li>/')
+# Process the tasks by excluding the headers and keeping only the task items
+PENDING_LIST=$(echo "$TODO_CONTENT" | grep -E '^(Update|Deploy)' | sed 's/^/ <li>/;s/$/<\/li>/')
+COMPLETED_LIST=$(echo "$TODO_CONTENT" | grep -E '^(Add|Fix|Write)' | sed 's/^/ <li>/;s/$/<\/li>/')
 
 # Process Unit Test Results into <pre> content (Preserve line breaks and indentation)
 UNIT_TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/    /')
+
+# Remove the existing content inside the relevant sections (pending, completed, and unittest) in the index.html
+sed -i '/<ul id="pending">/,/<\/ul>/d' /app/index.html
+sed -i '/<ul id="completed">/,/<\/ul>/d' /app/index.html
+sed -i '/<pre id="unittest">/,/<\/pre>/d' /app/index.html
 
 # Replace the placeholders in index.html using awk for multiline content
 awk -v pending="$PENDING_LIST" -v completed="$COMPLETED_LIST" -v unittest="$UNIT_TEST_RESULTS" '
