@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Check if index.html exists
-if [[ ! -f /app/index.html ]]; then
-    echo "Error: /app/index.html not found. Exiting."
-    exit 1
-fi
-
 # Read content from the todo output and test output
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
