@@ -10,31 +10,42 @@ fi
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
+# Split tasks into individual list items
+PENDING_LIST=$(echo "$TODO_CONTENT" | sed 's/^/ <li>/;s/$/<\/li>/')
+COMPLETED_LIST=$(echo "$TEST_CONTENT" | sed 's/^/ <li>/;s/$/<\/li>/')
+
 # Replace the placeholders in index.html using awk for multiline content
-awk -v todo="$TODO_CONTENT" -v test="$TEST_CONTENT" '
+awk -v pending="$PENDING_LIST" -v completed="$COMPLETED_LIST" -v test="$TEST_CONTENT" '
 BEGIN {
     pending_start = "<ul id=\"pending\">"
     pending_end = "</ul>"
+    completed_start = "<ul id=\"completed\">"
+    completed_end = "</ul>"
     unittest_start = "<pre id=\"unittest\">"
     unittest_end = "</pre>"
+    body_start = "<body>"
+    body_end = "</body>"
 }
 {
-    if ($0 ~ pending_start) {
+    # Identify the <body> section
+    if ($0 ~ body_start) {
         print $0
-        print todo
-        skip = 1
-    } else if ($0 ~ pending_end) {
-        skip = 0
-        next
-    } else if ($0 ~ unittest_start) {
-        print $0
+        inside_body = 1
+    } else if ($0 ~ body_end && inside_body) {
+        print pending
+        print completed
+        print unittest_start
         print test
-        skip = 1
-    } else if ($0 ~ unittest_end) {
-        skip = 0
+        print unittest_end
+        print $0
+        inside_body = 0
         next
+    } else if (inside_body) {
+        # Process content within the <body> tag
+        print $0
+    } else {
+        print $0
     }
-    if (!skip) print $0
 }
 ' /app/index.html > /app/index.html.tmp && mv /app/index.html.tmp /app/index.html
 
