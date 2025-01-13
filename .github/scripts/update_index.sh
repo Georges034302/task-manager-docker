@@ -25,11 +25,11 @@ UNIT_TEST_RESULTS_ESCAPED=$(escape_sed "$UNIT_TEST_RESULTS")
 # Use sed to replace the content inside <pre id="pending"> with tasks wrapped in <li>
 # Replace the pending tasks section
 sed -i "/<pre id=\"pending\">/,/<\/pre>/c\\
-<pre id=\"pending\">\n$(echo "$TODO_TASKS_ESCAPED" | sed 's/$/<li>&<\/li>/')\n</pre>" "$HTML_FILE"
+<pre id=\"pending\">\n$(echo "$TODO_TASKS_ESCAPED" "$HTML_FILE"
 
 # Replace the Completed Tasks section with Done tasks, keeping the <pre> structure
 sed -i "/<pre id=\"completed\">/,/<\/pre>/c\\
-<pre id=\"completed\">\n$(echo "$DONE_TASKS_ESCAPED" | sed 's/$/<li>&<\/li>/')\n</pre>" "$HTML_FILE"
+<pre id=\"completed\">\n$(echo "$DONE_TASKS_ESCAPED" "$HTML_FILE"
 
 # Replace the Unit Test Results section with the actual test results, no <li> needed
 sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
