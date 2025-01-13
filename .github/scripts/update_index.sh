@@ -27,7 +27,7 @@ update_pre() {
         split(content, lines, "\n")
         for (i in lines) {
           if (lines[i] != "") {
-            printf "%s\n", lines[i]
+            print lines[i]  # This line is changed
           }
         }
         in_pre = 1
