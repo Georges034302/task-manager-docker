@@ -12,7 +12,7 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to update <pre> blocks (Overwrite content)
+# Function to update pre blocks (using awk)
 update_pre() {
   local pre_id="$1"
   local content="$2"
@@ -21,29 +21,30 @@ update_pre() {
   awk -v pre_id="$pre_id" -v content="$content" '
     BEGIN { in_pre = 0 }
     {
-      # Detect the start of the <pre> block
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print $0
-        split(content, lines, "\n")
-        for (i in lines) {
-          if (lines[i] != "") {
-            print lines[i]  # This line is changed
+        print  # Print the opening <pre> tag
+        if (content != "") { # Check if content is not empty
+          split(content, lines, "\n")
+          for (i in lines) {
+            print lines[i] # Print each line (with existing newlines)
           }
         }
         in_pre = 1
         next
       }
-      # Detect the end of the <pre> block
       if (in_pre && $0 ~ /<\/pre>/) {
-        print $0
+        print # Print the closing </pre> tag
         in_pre = 0
         next
       }
-      # Ensure other lines (including </body> and </html>) are preserved
-      print $0
+      if (in_pre) {
+        next # Skip lines within the existing <pre> block
+      }
+      print # Print all other lines
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
+
 
 # Use the function to update all <pre> blocks
 update_pre "pending" "$TODO_TASKS" "$HTML_FILE"
