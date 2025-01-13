@@ -6,30 +6,39 @@ if [[ ! -f /app/index.html ]]; then
     exit 1
 fi
 
-# Read content from the todo output and test output
+# Read content from the todo output and test output files
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
 # Backup the original index.html
 cp /app/index.html /app/index.html.bak
 
+# Extract ToDo tasks from the $1 file (Assuming ToDo tasks are marked with 'ToDo' label)
+TODO_TASKS=$(echo "$TODO_CONTENT" | grep -i 'ToDo' | sed 's/^/<li>/;s/$/<\/li>/')
+
+# Extract Done tasks from the $1 file (Assuming Done tasks are marked with 'Done' label)
+DONE_TASKS=$(echo "$TODO_CONTENT" | grep -i 'Done' | sed 's/^/<li>/;s/$/<\/li>/')
+
+# Extract Unit Test Results from the $2 file (Each result is assumed to be a line in the file)
+TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/<pre>/;s/$/<\/pre>/')
+
 # Update the Pending Tasks section (only ToDo tasks, listed vertically)
 sed -i "/<ul id=\"pending\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "<li>Update Login UI</li><li>Update Documentation</li><li>Deploy to Production</li>"
+}" /app/index.html <<< "$TODO_TASKS"
 
 # Update the Completed Tasks section (only Done tasks, listed vertically)
 sed -i "/<ul id=\"completed\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "<li>Add Login UI</li><li>Fix UI Bug</li><li>Write Tests</li>"
+}" /app/index.html <<< "$DONE_TASKS"
 
 # Update the Unit Test Results section (listed vertically)
 sed -i "/<pre id=\"unittest\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "test_add_task ... ok\ntest_get_done_tasks ... ok\ntest_get_open_tasks ... ok\nTotal Tests: 3\nPassed: 3 (100.00%)\nFailed: 0 (0.00%)"
+}" /app/index.html <<< "$TEST_RESULTS"
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
