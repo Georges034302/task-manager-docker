@@ -13,24 +13,44 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Temporary backup of the original index.html file
 cp /app/index.html /app/index.html.bak
 
-# Target sections by their ID and update the content
-sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
-            <ul id=\"pending\">\n\
-            <li>ToDo Tasks:</li>\n\
-            $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')\n\
-            </ul>" /app/index.html
+# Update Pending Tasks section
+sed -i '/<section>.*<h2>Pending Tasks<\/h2>/,/<\/section>/{
+    /<ul id="pending">/ { 
+        r /dev/stdin
+        d
+    }
+    a\
+    <ul id="pending">\
+    <li>ToDo Tasks:</li>\
+    '"$(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')"\
+    </ul>\
+}' /app/index.html <<< "$TODO_CONTENT"
 
-sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
-            <ul id=\"completed\">\n\
-            <li>Add Login UI</li>\n\
-            <li>Fix UI Bug</li>\n\
-            <li>Write Tests</li>\n\
-            </ul>" /app/index.html
+# Update Completed Tasks section
+sed -i '/<section>.*<h2>Completed Tasks<\/h2>/,/<\/section>/{
+    /<ul id="completed">/ { 
+        r /dev/stdin
+        d
+    }
+    a\
+    <ul id="completed">\
+    <li>Add Login UI</li>\
+    <li>Fix UI Bug</li>\
+    <li>Write Tests</li>\
+    </ul>\
+}' /app/index.html
 
-sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
-            <pre id=\"unittest\">\n\
-            $(echo "$TEST_CONTENT")\n\
-            </pre>" /app/index.html
+# Update Unit Test Results section
+sed -i '/<section>.*<h2>Unit Test Results<\/h2>/,/<\/section>/{
+    /<pre id="unittest">/ { 
+        r /dev/stdin
+        d
+    }
+    a\
+    <pre id="unittest">\
+    '"$(echo "$TEST_CONTENT")"'\
+    </pre>\
+}' /app/index.html
 
 # Configure Git to use GitHub Actions user and email
 git config --global user.name "github-actions"
