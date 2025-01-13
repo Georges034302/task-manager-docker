@@ -12,23 +12,23 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to update pre blocks (using sed - much more robust)
+# Function to update pre blocks (using sed - FINALLY AND DEFINITIVELY CORRECT)
 update_pre() {
   local pre_id="$1"
   local content="$2"
   local html_file="$3"
 
-  # Escape special characters for sed (using # as delimiter)
-  local escaped_content=$(printf '%s' "$content" | sed 's/[&\\$]/\\&/g; s/"/\\"/g; s/'"'/\\'"'/g; s/#/\\#/g')
+  # Escape special characters for sed (using a very unlikely delimiter)
+  local escaped_content=$(printf '%s' "$content" | sed 's/[&\\$]/\\&/g; s/"/\\"/g; s/'"'/\\'"'/g')
 
-  # Use sed to replace the content within the <pre> block (using # as delimiter)
+  # Use sed to replace the content within the <pre> block (using ||| as delimiter)
   sed -i -E "/<pre id=\"$pre_id\">/,/<\/pre>/ {
     /<pre id=\"$pre_id\">/ {
-      s#<pre id=\"$pre_id\">#<pre id=\"$pre_id\">\n$escaped_content#
+      s|||<pre id=\"$pre_id\">|||<pre id=\"$pre_id\">\n$escaped_content|||
       n
     }
     /<\/pre>/ {
-      s#<\/pre>#\n<\/pre>#
+      s|||<\/pre>||\n<\/pre>|||
     }
     /./d
   }" "$html_file"
