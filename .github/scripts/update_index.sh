@@ -18,26 +18,24 @@ update_pre() {
   local content="$2"
   local html_file="$3"
 
-  awk -v pre_id="$pre_id" '
+  # Ensure that the content is only inserted inside the <pre> tags
+  awk -v pre_id="$pre_id" -v content="$content" '
     BEGIN { in_pre = 0 }
     {
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print $0
+        print $0  # Print opening <pre> tag
+        print content  # Insert the content inside the <pre> block
         in_pre = 1
         next
       }
       if (in_pre && $0 ~ /<\/pre>/) {
-        print $0
+        print $0  # Print closing </pre> tag
         in_pre = 0
         next
       }
-      if (in_pre) { # If inside a <pre> block
-        print
-        next #Crucial to prevent default print
-      }
-      print $0 # Print lines outside the <pre> block
+      if (!in_pre) { print $0 }  # Print lines outside the <pre> block
     }
-  ' "$html_file" <(echo "$content") > "$html_file".tmp && mv "$html_file".tmp "$html_file"
+  ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
 
 # Use the function to update all pre blocks
