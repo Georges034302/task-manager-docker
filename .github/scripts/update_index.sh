@@ -1,23 +1,14 @@
 #!/bin/bash
 
-# Check if index.html exists
-if [[ ! -f /app/index.html ]]; then
-    echo "Error: /app/index.html not found. Exiting."
-    exit 1
-fi
-
 # Read content from the todo output and test output files
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Backup the original index.html
-cp /app/index.html /app/index.html.bak
-
 # Extract ToDo tasks from the $1 file (Assuming ToDo tasks are marked with 'ToDo' label)
-TODO_TASKS=$(echo "$TODO_CONTENT" | grep -i 'ToDo' | sed 's/^/<li>/;s/$/<\/li>/')
+TODO_TASKS=$(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
 
 # Extract Done tasks from the $1 file (Assuming Done tasks are marked with 'Done' label)
-DONE_TASKS=$(echo "$TODO_CONTENT" | grep -i 'Done' | sed 's/^/<li>/;s/$/<\/li>/')
+DONE_TASKS=$(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
 
 # Extract Unit Test Results from the $2 file (Each result is assumed to be a line in the file)
 TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/<pre>/;s/$/<\/pre>/')
