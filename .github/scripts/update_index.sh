@@ -22,22 +22,22 @@ update_pre() {
     BEGIN { in_pre = 0 }
     {
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print  # Print the opening <pre> tag
+        print
         split(content, lines, "\n")
         for (i in lines) {
           if (lines[i] != "") {
-            printf "%s\n", lines[i] # Print each line with a newline
+            printf "%s\n", lines[i]
           }
         }
         in_pre = 1
         next
       }
       if (in_pre && $0 ~ /<\/pre>/) {
-        print  # Print the closing </pre> tag
+        print
         in_pre = 0
         next
       }
-      print  # Print all other lines
+      print
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
