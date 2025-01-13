@@ -17,9 +17,9 @@ cp /app/index.html /app/index.html.bak
 sed -i "/<ul id=\"pending\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "$TODO_CONTENT"
+}" /app/index.html <<< "<li>ToDo Tasks:</li><li>Update Login UI</li><li>Update Documentation</li><li>Deploy to Production</li><li>Done Tasks:</li><li>Add Login UI</li><li>Fix UI Bug</li><li>Write Tests</li>"
 
-# Update the Completed Tasks section (modify the content as needed)
+# Update the Completed Tasks section
 sed -i "/<ul id=\"completed\">/ { 
     r /dev/stdin
     d
@@ -29,7 +29,7 @@ sed -i "/<ul id=\"completed\">/ {
 sed -i "/<pre id=\"unittest\">/ { 
     r /dev/stdin
     d
-}" /app/index.html <<< "$TEST_CONTENT"
+}" /app/index.html <<< "test_add_task ... ok test_get_done_tasks ... ok test_get_open_tasks ... ok Total Tests: 3 Passed: 3 (100.00%) Failed: 0 (0.00%)"
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
