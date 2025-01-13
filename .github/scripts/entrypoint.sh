@@ -3,12 +3,12 @@
 echo "======================"
 echo "Executing todo.py"
 echo "======================"
-python3 /app/.github/scripts/todo.py > /app/todo_output.txt
+python3 /app/.github/scripts/todo.py | tee /app/todo_output.txt
 
 echo "======================"
 echo "Executing todo-test.py"
 echo "======================"
-python3 /app/.github/scripts/todo-test.py > /app/test_output.txt  # Corrected the filename
+python3 /app/.github/scripts/todo-test.py | tee /app/test_output.txt  
 
 echo "======================"
 echo "Executing update_index.sh"
