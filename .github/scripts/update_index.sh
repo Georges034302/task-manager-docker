@@ -12,7 +12,7 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to update pre blocks (pending, completed, unittest)
+# Function to update pre blocks
 update_pre() {
   local pre_id="$1"
   local content="$2"
@@ -20,7 +20,7 @@ update_pre() {
 
   awk -v pre_id="$pre_id" -v content="$content" '
     BEGIN { in_pre = 0 }
-    /<pre id="'pre_id'">/ {
+    $0 ~ "<pre id=\"" pre_id "\">" { # Correct way to use pre_id as a variable
       print "<pre id=\"" pre_id "\">"
       print content
       in_pre = 1
