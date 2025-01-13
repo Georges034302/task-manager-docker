@@ -10,20 +10,8 @@ fi
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Process the tasks by excluding the headers and keeping only the task items
-PENDING_LIST=$(echo "$TODO_CONTENT" | grep -E '^(Update|Deploy)' | sed 's/^/ <li>/;s/$/<\/li>/')
-COMPLETED_LIST=$(echo "$TODO_CONTENT" | grep -E '^(Add|Fix|Write)' | sed 's/^/ <li>/;s/$/<\/li>/')
-
-# Process Unit Test Results into <pre> content (Preserve line breaks and indentation)
-UNIT_TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/    /')
-
-# Remove the existing content inside the relevant sections (pending, completed, and unittest) in the index.html
-sed -i '/<ul id="pending">/,/<\/ul>/d' /app/index.html
-sed -i '/<ul id="completed">/,/<\/ul>/d' /app/index.html
-sed -i '/<pre id="unittest">/,/<\/pre>/d' /app/index.html
-
 # Replace the placeholders in index.html using awk for multiline content
-awk -v pending="$PENDING_LIST" -v completed="$COMPLETED_LIST" -v unittest="$UNIT_TEST_RESULTS" '
+awk -v todo="$TODO_CONTENT" -v test="$TEST_CONTENT" '
 BEGIN {
     pending_start = "<ul id=\"pending\">"
     pending_end = "</ul>"
@@ -33,23 +21,35 @@ BEGIN {
     unittest_end = "</pre>"
 }
 {
-    if ($0 ~ "<ul id=\"pending\">") {
+    if ($0 ~ pending_start) {
         print $0
-        print pending
+        skip = 1
+    } else if ($0 ~ pending_end) {
+        skip = 0
         next
-    } else if ($0 ~ "<ul id=\"completed\">") {
+    } else if ($0 ~ completed_start) {
         print $0
-        print completed
+        skip = 1
+    } else if ($0 ~ completed_end) {
+        skip = 0
         next
-    } else if ($0 ~ "<pre id=\"unittest\">") {
+    } else if ($0 ~ unittest_start) {
         print $0
-        print unittest
+        skip = 1
+    } else if ($0 ~ unittest_end) {
+        skip = 0
         next
-    } else {
-        print $0
     }
+    if (!skip) print $0
 }
 ' /app/index.html > /app/index.html.tmp && mv /app/index.html.tmp /app/index.html
+
+# Insert tasks into the Pending and Completed sections
+sed -i "/<ul id=\"pending\">/a $todo" /app/index.html
+sed -i "/<ul id=\"completed\">/a $todo" /app/index.html
+
+# Insert test results into the Unit Test Results section
+sed -i "/<pre id=\"unittest\">/a $test" /app/index.html
 
 echo "/app/index.html updated successfully."
 
