@@ -14,7 +14,7 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 PENDING_LIST=$(echo "$TODO_CONTENT" | grep -E '^ToDo Tasks:|^Update|^Deploy|^Documentation' | sed 's/^/ <li>/;s/$/<\/li>/')
 COMPLETED_LIST=$(echo "$TODO_CONTENT" | grep -E '^Done Tasks:|^Add|^Fix|^Write' | sed 's/^/ <li>/;s/$/<\/li>/')
 
-# Process Unit Test Results into <pre> content
+# Process Unit Test Results into <pre> content (Preserve line breaks and indentation)
 UNIT_TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/    /')
 
 # Replace the placeholders in index.html using awk for multiline content
