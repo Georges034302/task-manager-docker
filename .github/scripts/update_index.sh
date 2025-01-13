@@ -12,7 +12,7 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to update pre blocks (using awk)
+# Function to update <pre> blocks (Overwrite content)
 update_pre() {
   local pre_id="$1"
   local content="$2"
@@ -21,30 +21,35 @@ update_pre() {
   awk -v pre_id="$pre_id" -v content="$content" '
     BEGIN { in_pre = 0 }
     {
+      # Detect the start of the <pre> block
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print  # Print the opening <pre> tag
+        print $0
         split(content, lines, "\n")
         for (i in lines) {
           if (lines[i] != "") {
-            printf "%s\n", lines[i] # Print each line with a newline
+            printf "%s\n", lines[i]
           }
         }
-        in_pre = 1 # Set the flag to indicate we're inside the <pre>
-        while (getline) { # Read and discard lines until closing </pre>
-          if ($0 ~ /<\/pre>/) {
-            print # Print the closing </pre> tag
-            in_pre = 0 # Reset the flag
-            break # Exit the while loop
-          }
-        }
-        next # Skip the rest of the main awk loop for this line
+        in_pre = 1
+        next
       }
-      print  # Print all other lines outside the <pre> block
+      # Detect the end of the <pre> block
+      if (in_pre && $0 ~ /<\/pre>/) {
+        print $0
+        in_pre = 0
+        next
+      }
+      # Skip lines inside <pre> blocks to avoid duplication
+      if (in_pre) {
+        next
+      }
+      # Print other lines as-is
+      print $0
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
-}'
+}
 
-# Use the function to update all pre blocks
+# Use the function to update all <pre> blocks
 update_pre "pending" "$TODO_TASKS" "$HTML_FILE"
 update_pre "completed" "$DONE_TASKS" "$HTML_FILE"
 update_pre "unittest" "$UNIT_TEST_RESULTS" "$HTML_FILE"
