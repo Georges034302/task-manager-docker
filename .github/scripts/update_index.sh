@@ -19,9 +19,7 @@ sed -i '/<section>\s*<h2>Pending Tasks<\/h2>/,/<\/section>/d' /app/index.html
 sed -i '/<section>\s*<h2>Completed Tasks<\/h2>/,/<\/section>/d' /app/index.html
 sed -i '/<section>\s*<h2>Unit Test Results<\/h2>/,/<\/section>/d' /app/index.html
 
-# Add the new Pending Tasks, Completed Tasks, and Unit Test Results
-
-# Create a temporary content file to store the new HTML section
+# Create new Pending Tasks, Completed Tasks, and Unit Test Results sections
 cat <<EOF > /tmp/new_content.html
 <section>
     <h2>Pending Tasks</h2>
@@ -33,7 +31,9 @@ cat <<EOF > /tmp/new_content.html
 <section>
     <h2>Completed Tasks</h2>
     <ul id="completed">
-        $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
+        <li>Add Login UI</li>
+        <li>Fix UI Bug</li>
+        <li>Write Tests</li>
     </ul>
 </section>
 
@@ -45,7 +45,7 @@ cat <<EOF > /tmp/new_content.html
 </section>
 EOF
 
-# Insert the new content after the <body> tag
+# Insert the new content into the HTML file after the <body> tag
 sed -i "/<body>/r /tmp/new_content.html" /app/index.html
 
 # Clean up the temporary content file
