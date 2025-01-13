@@ -12,9 +12,9 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to escape special characters for sed
+# Function to escape special characters for sed (using printf)
 escape_sed() {
-  echo "$1" | sed 's/[&/\]/\\&/g'
+  printf '%s\n' "$(echo "$1" | sed 's/[]&/\\&/g')"
 }
 
 # Escape the tasks and results to handle special characters
