@@ -15,7 +15,7 @@ UNIT_TEST_RESULTS=$(cat "$2")
 # Backup the original HTML file to prevent data loss
 cp "$HTML_FILE" "$HTML_FILE.bak"
 
-# Replace the Pending Tasks section with ToDo tasks
+# Replace the Pending Tasks section with ToDo tasks (do not remove the section)
 awk -v tasks="$TODO_TASKS" '
   /<ul id="pending">/ { 
     print "<ul id=\"pending\">"; 
@@ -26,7 +26,7 @@ awk -v tasks="$TODO_TASKS" '
   { print }
 ' "$HTML_FILE.bak" > "$HTML_FILE"
 
-# Replace the Completed Tasks section with Done tasks
+# Replace the Completed Tasks section with Done tasks (ensure the <ul id="completed"> section exists)
 awk -v tasks="$DONE_TASKS" '
   /<ul id="completed">/ { 
     print "<ul id=\"completed\">"; 
