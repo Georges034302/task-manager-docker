@@ -12,23 +12,53 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Use sed to add <li> tags around each task for Pending Tasks
-sed -i -E "/<ul id=\"pending\">/,/<\/ul>/c\\
-<ul id=\"pending\">\\
-$(printf '%s\n' "$TODO_TASKS" | sed 's/.*/<li>&<\/li>/')\\
-</ul>" "$HTML_FILE"
+# Use awk to add <li> tags around each task for Pending Tasks
+awk -v tasks="$TODO_TASKS" -v html_file="$HTML_FILE" '
+FNR==NR {
+    if ($0 ~ /<ul id="pending">/) {
+        print
+        split(tasks, task_array, "\n")
+        for (i in task_array) {
+            print "<li>" task_array[i] "</li>"
+        }
+    } else {
+        print
+    }
+    next
+}
+{ print }
+' "$HTML_FILE" "$HTML_FILE" > "$HTML_FILE".tmp && mv "$HTML_FILE".tmp "$HTML_FILE"
 
-# Replace the Completed Tasks section with Done tasks, using sed to wrap each task in <li> tags
-sed -i -E "/<ul id=\"completed\">/,/<\/ul>/c\\
-<ul id=\"completed\">\\
-$(printf '%s\n' "$DONE_TASKS" | sed 's/.*/<li>&<\/li>/')\\
-</ul>" "$HTML_FILE"
+# Use awk to add <li> tags around each task for Completed Tasks
+awk -v tasks="$DONE_TASKS" -v html_file="$HTML_FILE" '
+FNR==NR {
+    if ($0 ~ /<ul id="completed">/) {
+        print
+        split(tasks, task_array, "\n")
+        for (i in task_array) {
+            print "<li>" task_array[i] "</li>"
+        }
+    } else {
+        print
+    }
+    next
+}
+{ print }
+' "$HTML_FILE" "$HTML_FILE" > "$HTML_FILE".tmp && mv "$HTML_FILE".tmp "$HTML_FILE"
 
-# Replace the Unit Test Results section with the actual test results, no <li> needed for unit tests
-sed -i -E "/<pre id=\"unittest\">/,/<\/pre>/c\\
-<pre id=\"unittest\">\\
-$(printf '%s' "$UNIT_TEST_RESULTS")\\
-</pre>" "$HTML_FILE"
+# Use awk to replace Unit Test Results
+awk -v results="$UNIT_TEST_RESULTS" -v html_file="$HTML_FILE" '
+FNR==NR {
+    if ($0 ~ /<pre id="unittest">/) {
+        print
+        print results
+    } else {
+        print
+    }
+    next
+}
+{ print }
+' "$HTML_FILE" "$HTML_FILE" > "$HTML_FILE".tmp && mv "$HTML_FILE".tmp "$HTML_FILE"
 
 
 # Configure Git and push changes
