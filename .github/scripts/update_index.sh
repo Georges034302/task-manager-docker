@@ -13,42 +13,37 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Temporary backup of the original index.html file
 cp /app/index.html /app/index.html.bak
 
-# Remove the existing sections from the body (Pending Tasks, Completed Tasks, Unit Test Results)
-sed -i '/<section>\s*<h2>Pending Tasks<\/h2>/,/<\/section>/d' /app/index.html
-sed -i '/<section>\s*<h2>Completed Tasks<\/h2>/,/<\/section>/d' /app/index.html
-sed -i '/<section>\s*<h2>Unit Test Results<\/h2>/,/<\/section>/d' /app/index.html
+# Remove all existing sections from the body (Pending Tasks, Completed Tasks, Unit Test Results)
+sed -i '/<body>/,/<\/body>/ { /<section>/,/<\/section>/d }' /app/index.html
 
 # Add the Pending Tasks section
 cat <<EOF >> /app/index.html
-<section>
-    <h2>Pending Tasks</h2>
-    <ul id="pending">
-        <li>ToDo Tasks:</li>
-        $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
-    </ul>
-</section>
-EOF
+<body>
+    <section>
+        <h2>Pending Tasks</h2>
+        <ul id="pending">
+            <li>ToDo Tasks:</li>
+            $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')
+        </ul>
+    </section>
+    
+    <section>
+        <h2>Completed Tasks</h2>
+        <ul id="completed">
+            <li>Add Login UI</li>
+            <li>Fix UI Bug</li>
+            <li>Write Tests</li>
+        </ul>
+    </section>
 
-# Add the Completed Tasks section
-cat <<EOF >> /app/index.html
-<section>
-    <h2>Completed Tasks</h2>
-    <ul id="completed">
-        <li>Add Login UI</li>
-        <li>Fix UI Bug</li>
-        <li>Write Tests</li>
-    </ul>
-</section>
-EOF
-
-# Add the Unit Test Results section
-cat <<EOF >> /app/index.html
-<section>
-    <h2>Unit Test Results</h2>
-    <pre id="unittest">
-        $(echo "$TEST_CONTENT")
-    </pre>
-</section>
+    <section>
+        <h2>Unit Test Results</h2>
+        <pre id="unittest">
+            $(echo "$TEST_CONTENT")
+        </pre>
+    </section>
+</body>
+</html>
 EOF
 
 # Configure Git to use GitHub Actions user and email
