@@ -2,12 +2,9 @@
 
 HTML_FILE="index.html"
 
-# Robustly extract tasks (handling missing/multiple "Done Tasks:")
 TODO_TASKS=$(grep -A 1000 "ToDo Tasks:" "$1" | sed '1d;/Done Tasks:/q')
-
-# Extract DONE_TASKS using awk for more robust handling
-DONE_TASKS=$(awk '/Done Tasks:/,/^$/' "$1" | sed '1d;$d')
-
+DONE_TASKS=$(awk '/Done Tasks:/,/^[[:space:]]*$/ { \
+                  if(NR>1 && !/Done Tasks:/)print}' "$1")
 UNIT_TEST_RESULTS=$(cat "$2")
 
 update_pre() {
