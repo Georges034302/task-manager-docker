@@ -12,13 +12,13 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d' | sed 's/^/<li>/;s/$/<\/
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Backup the original HTML file to prevent data loss
-cp "$HTML_FILE" "$HTML_FILE.bak"
-
-# Escape special characters for sed usage
+# Escape any special characters for use in sed (e.g., & and /)
 TODO_TASKS=$(echo "$TODO_TASKS" | sed 's/[&/\]/\\&/g')
 DONE_TASKS=$(echo "$DONE_TASKS" | sed 's/[&/\]/\\&/g')
 UNIT_TEST_RESULTS=$(echo "$UNIT_TEST_RESULTS" | sed 's/[&/\]/\\&/g')
+
+# Backup the original HTML file to prevent data loss
+cp "$HTML_FILE" "$HTML_FILE.bak"
 
 # Replace the Pending Tasks section with ToDo tasks
 sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
