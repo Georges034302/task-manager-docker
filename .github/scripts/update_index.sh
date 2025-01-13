@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if index.html exists
+if [[ ! -f /app/index.html ]]; then
+    echo "Error: /app/index.html not found. Exiting."
+    exit 1
+fi
+
 # Read content from the todo output and test output
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
@@ -7,37 +13,29 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Temporary backup of the original index.html file
 cp /app/index.html /app/index.html.bak
 
-# Remove the second body tag (if exists) and clean up any extra content
-sed -i 's|</body>||g' /app/index.html
-sed -i 's|<body>||g' /app/index.html
+# Remove duplicate body tags and sections, if any
+sed -i 's|<body>.*</body>|<body></body>|' /app/index.html
 
-# Add the content to the existing body
-sed -i "/<\/html>/i \
-<body>\n\
-    <section>\n\
-        <h2>Pending Tasks</h2>\n\
-        <ul id=\"pending\">\n\
+# Update the Pending Tasks section
+sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
+            <ul id=\"pending\">\n\
             <li>ToDo Tasks:</li>\n\
             $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')\n\
-        </ul>\n\
-    </section>\n\
-    \n\
-    <section>\n\
-        <h2>Completed Tasks</h2>\n\
-        <ul id=\"completed\">\n\
+            </ul>" /app/index.html
+
+# Update the Completed Tasks section (this is static data for now)
+sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
+            <ul id=\"completed\">\n\
             <li>Add Login UI</li>\n\
             <li>Fix UI Bug</li>\n\
             <li>Write Tests</li>\n\
-        </ul>\n\
-    </section>\n\
-    \n\
-    <section>\n\
-        <h2>Unit Test Results</h2>\n\
-        <pre id=\"unittest\">\n\
+            </ul>" /app/index.html
+
+# Update the Unit Test Results section
+sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
+            <pre id=\"unittest\">\n\
             $(echo "$TEST_CONTENT")\n\
-        </pre>\n\
-    </section>\n\
-</body>" /app/index.html
+            </pre>" /app/index.html
 
 # Configure Git to use GitHub Actions user and email
 git config --global user.name "github-actions"
