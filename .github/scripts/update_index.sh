@@ -12,11 +12,12 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Replace the Pending Tasks section with ToDo tasks
+# Use awk inside the sed command to add <li> tags around each task
 sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
 <ul id=\"pending\">\\
-$TODO_TASKS\\
+$(echo "$TODO_TASKS" | awk '{print "<li>" $0 "</li>"}')\\
 </ul>" "$HTML_FILE"
+
 
 # Replace the Completed Tasks section with Done tasks
 sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
