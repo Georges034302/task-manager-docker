@@ -1,51 +1,30 @@
 #!/bin/bash
 
+# Check if index.html exists
+if [[ ! -f /app/index.html ]]; then
+    echo "Error: /app/index.html not found. Exiting."
+    exit 1
+fi
+
 # Read content from the todo output and test output
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Replace the placeholders in index.html using awk for multiline content
-awk -v todo="$TODO_CONTENT" -v test="$TEST_CONTENT" '
-BEGIN {
-    pending_start = "<ul id=\"pending\">"
-    pending_end = "</ul>"
-    completed_start = "<ul id=\"completed\">"
-    completed_end = "</ul>"
-    unittest_start = "<pre id=\"unittest\">"
-    unittest_end = "</pre>"
-}
-{
-    if ($0 ~ pending_start) {
-        print $0
-        skip = 1
-    } else if ($0 ~ pending_end) {
-        skip = 0
-        next
-    } else if ($0 ~ completed_start) {
-        print $0
-        skip = 1
-    } else if ($0 ~ completed_end) {
-        skip = 0
-        next
-    } else if ($0 ~ unittest_start) {
-        print $0
-        skip = 1
-    } else if ($0 ~ unittest_end) {
-        skip = 0
-        next
-    }
-    if (!skip) print $0
-}
-' /app/index.html > /app/index.html.tmp && mv /app/index.html.tmp /app/index.html
+# Create temporary files to store updated content
+TEMP_HTML=$(mktemp)
 
-# Insert tasks into the Pending and Completed sections
-sed -i "/<ul id=\"pending\">/a $todo" /app/index.html
-sed -i "/<ul id=\"completed\">/a $todo" /app/index.html
+# Remove existing task and test sections by excluding the matching lines
+awk '!/<ul id="pending">|<ul id="completed">|<pre id="unittest">|<\/ul>|<\/pre>/' /app/index.html > "$TEMP_HTML"
 
-# Insert test results into the Unit Test Results section
-sed -i "/<pre id=\"unittest\">/a $test" /app/index.html
+# Insert the Pending and Completed task content into the correct sections
+echo "$TODO_CONTENT" | sed 's/^/    /' >> "$TEMP_HTML" # Indentation for task lists
+awk '/<ul id="pending">/ {print; print "<ul id=\"pending\">"; next} /<\/ul>/ {print; print "<\/ul>"; next} {print}' "$TEMP_HTML" > "$TEMP_HTML.tmp" && mv "$TEMP_HTML.tmp" "$TEMP_HTML"
 
-echo "/app/index.html updated successfully."
+# Insert the Unit Test Results into the correct section
+echo "$TEST_CONTENT" | sed 's/^/    /' >> "$TEMP_HTML"
+
+# Update index.html with the new contents
+mv "$TEMP_HTML" /app/index.html
 
 # Configure Git to use GitHub Actions user and email
 git config --global user.name "github-actions"
@@ -53,5 +32,5 @@ git config --global user.email "github-actions@users.noreply.github.com"
 
 # Add index.html to git, commit, and push the changes
 git add index.html
-git commit -m "Update index.html with vowel frequency results"
+git commit -m "Update index.html with new task and test data"
 git push
