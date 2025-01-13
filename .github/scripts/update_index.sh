@@ -10,12 +10,15 @@ fi
 TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
 TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Split tasks into individual list items for Pending Tasks
-PENDING_LIST=$(echo "$TODO_CONTENT" | sed 's/^/ <li>/;s/$/<\/li>/')
-COMPLETED_LIST=$(echo "$TEST_CONTENT" | sed 's/^/ <li>/;s/$/<\/li>/')
+# Split tasks into individual list items for Pending Tasks and Completed Tasks
+PENDING_LIST=$(echo "$TODO_CONTENT" | grep -E '^ToDo Tasks:|^Update|^Deploy|^Documentation' | sed 's/^/ <li>/;s/$/<\/li>/')
+COMPLETED_LIST=$(echo "$TODO_CONTENT" | grep -E '^Done Tasks:|^Add|^Fix|^Write' | sed 's/^/ <li>/;s/$/<\/li>/')
+
+# Process Unit Test Results into <pre> content
+UNIT_TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/    /')
 
 # Replace the placeholders in index.html using awk for multiline content
-awk -v pending="$PENDING_LIST" -v completed="$COMPLETED_LIST" -v test="$TEST_CONTENT" '
+awk -v pending="$PENDING_LIST" -v completed="$COMPLETED_LIST" -v unittest="$UNIT_TEST_RESULTS" '
 BEGIN {
     pending_start = "<ul id=\"pending\">"
     pending_end = "</ul>"
@@ -23,26 +26,20 @@ BEGIN {
     completed_end = "</ul>"
     unittest_start = "<pre id=\"unittest\">"
     unittest_end = "</pre>"
-    body_start = "<body>"
-    body_end = "</body>"
 }
 {
-    # Identify the <body> section
-    if ($0 ~ body_start) {
+    if ($0 ~ "<ul id=\"pending\">") {
         print $0
-        inside_body = 1
-    } else if ($0 ~ body_end && inside_body) {
         print pending
-        print completed
-        print unittest_start
-        print test
-        print unittest_end
-        print $0
-        inside_body = 0
         next
-    } else if (inside_body) {
-        # Process content within the <body> tag
+    } else if ($0 ~ "<ul id=\"completed\">") {
         print $0
+        print completed
+        next
+    } else if ($0 ~ "<pre id=\"unittest\">") {
+        print $0
+        print unittest
+        next
     } else {
         print $0
     }
