@@ -30,6 +30,7 @@ update_pre "unittest" "$UNIT_TEST_RESULTS" "$HTML_FILE"
 git config --global user.name "github-actions"
 git config --global user.email "github-actions@users.noreply.github.com"
 
+# Commit the changes back to the main repository
 git add index.html
 git commit -m "Update index.html with new task and test data"
 git push
