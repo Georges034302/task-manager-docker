@@ -3,23 +3,23 @@
 # File where HTML content is located
 HTML_FILE="index.html"
 
-# Read the ToDo tasks from $1 (pending tasks
+# Read the ToDo tasks from $1 (pending tasks)
 TODO_TASKS=$(grep -A 1000 "ToDo Tasks:" "$1" | grep -B 1000 "Done Tasks:" | sed '1d;$d' | sed 's/^/<li>/;s/$/<\/li>/')
 
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
 # Replace the Pending Tasks section with ToDo tasks
-sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
+sed -i "#<ul id=\"pending\">#,<\\/ul>#c\\
 <ul id=\"pending\">\\
 $TODO_TASKS\\
 </ul>" $HTML_FILE
 
 # Replace the Unit Test Results section with the actual test results
-sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
+sed -i "#<pre id=\"unittest\">#,<\\/pre>#c\\
 <pre id=\"unittest\">\\
 $UNIT_TEST_RESULTS\\
-<\/pre>" $HTML_FILE
+</pre>" $HTML_FILE
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
