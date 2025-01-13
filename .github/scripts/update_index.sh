@@ -12,28 +12,26 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Function to update pre blocks
+# Function to update pre blocks (using awk)
 update_pre() {
   local pre_id="$1"
   local content="$2"
   local html_file="$3"
 
-  # Ensure that the content is only inserted inside the <pre> tags
   awk -v pre_id="$pre_id" -v content="$content" '
-    BEGIN { in_pre = 0 }
     {
       if ($0 ~ "<pre id=\"" pre_id "\">") {
-        print $0  # Print opening <pre> tag
-        print content  # Insert the content inside the <pre> block
-        in_pre = 1
+        print $0
+        print content
+        while (getline) {       # Read until closing </pre>
+          if ($0 ~ /<\/pre>/) {
+            print $0
+            break
+          }
+        }
         next
       }
-      if (in_pre && $0 ~ /<\/pre>/) {
-        print $0  # Print closing </pre> tag
-        in_pre = 0
-        next
-      }
-      if (!in_pre) { print $0 }  # Print lines outside the <pre> block
+      print $0
     }
   ' "$html_file" > "$html_file".tmp && mv "$html_file".tmp "$html_file"
 }
