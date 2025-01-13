@@ -16,37 +16,22 @@ UNIT_TEST_RESULTS=$(cat "$2")
 cp "$HTML_FILE" "$HTML_FILE.bak"
 
 # Replace the Pending Tasks section with ToDo tasks (do not remove the section)
-awk -v tasks="$TODO_TASKS" '
-  /<ul id="pending">/ { 
-    print "<ul id=\"pending\">"; 
-    print tasks; 
-    next;
-  }
-  /<\/ul>/ { print "</ul>"; next }
-  { print }
-' "$HTML_FILE.bak" > "$HTML_FILE"
+sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
+<ul id=\"pending\">\\
+$TODO_TASKS\\
+</ul>" "$HTML_FILE"
 
-# Replace the Completed Tasks section with Done tasks (ensure the <ul id="completed"> section exists)
-awk -v tasks="$DONE_TASKS" '
-  /<ul id="completed">/ { 
-    print "<ul id=\"completed\">"; 
-    print tasks; 
-    next;
-  }
-  /<\/ul>/ { print "</ul>"; next }
-  { print }
-' "$HTML_FILE" > "$HTML_FILE.tmp" && mv "$HTML_FILE.tmp" "$HTML_FILE"
+# Replace the Completed Tasks section with Done tasks (do not remove the section)
+sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
+<ul id=\"completed\">\\
+$DONE_TASKS\\
+</ul>" "$HTML_FILE"
 
 # Replace the Unit Test Results section with the actual test results
-awk -v results="$UNIT_TEST_RESULTS" '
-  /<pre id="unittest">/ { 
-    print "<pre id=\"unittest\">"; 
-    print results; 
-    next;
-  }
-  /<\/pre>/ { print "</pre>"; next }
-  { print }
-' "$HTML_FILE" > "$HTML_FILE.tmp" && mv "$HTML_FILE.tmp" "$HTML_FILE"
+sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
+<pre id=\"unittest\">\\
+$UNIT_TEST_RESULTS\\
+</pre>" "$HTML_FILE"
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
