@@ -13,17 +13,13 @@ TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 # Temporary backup of the original index.html file
 cp /app/index.html /app/index.html.bak
 
-# Remove duplicate body tags and sections, if any
-sed -i 's|<body>.*</body>|<body></body>|' /app/index.html
-
-# Update the Pending Tasks section
+# Target sections by their ID and update the content
 sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
             <ul id=\"pending\">\n\
             <li>ToDo Tasks:</li>\n\
             $(echo "$TODO_CONTENT" | sed 's/^/<li>/;s/$/<\/li>/')\n\
             </ul>" /app/index.html
 
-# Update the Completed Tasks section (this is static data for now)
 sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
             <ul id=\"completed\">\n\
             <li>Add Login UI</li>\n\
@@ -31,7 +27,6 @@ sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
             <li>Write Tests</li>\n\
             </ul>" /app/index.html
 
-# Update the Unit Test Results section
 sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
             <pre id=\"unittest\">\n\
             $(echo "$TEST_CONTENT")\n\
