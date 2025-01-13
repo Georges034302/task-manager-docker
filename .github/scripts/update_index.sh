@@ -1,44 +1,19 @@
 #!/bin/bash
 
-# Check if index.html exists
-if [[ ! -f /app/index.html ]]; then
-    echo "Error: /app/index.html not found. Exiting."
-    exit 1
-fi
+# File where HTML content is located
+HTML_FILE="index.html"
 
-# Read content from the todo output and test output files
-TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
-TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
+# Read the ToDo tasks from $1 (pending tasks)
+TODO_TASKS=$(grep -A 1000 "ToDo Tasks:" "$1" | grep -B 1000 "Done Tasks:" | sed '1d;$d' | sed 's/^/<li>/;s/$/<\/li>/')
 
-# Backup the original index.html
-cp /app/index.html /app/index.html.bak
+# Read the Unit Test results from $2
+UNIT_TEST_RESULTS=$(cat "$2")
 
-# Extract ToDo tasks from the $1 file (Assuming ToDo tasks are marked with 'ToDo' label)
-TODO_TASKS=$(echo "$TODO_CONTENT" | grep -i 'ToDo' | sed 's/^/<li>/;s/$/<\/li>/')
+# Replace the Pending Tasks section with ToDo tasks
+sed -i "/<ul id=\"pending\">/,/<\/ul>/c\<ul id=\"pending\">\n$TODO_TASKS\n</ul>" $HTML_FILE
 
-# Extract Done tasks from the $1 file (Assuming Done tasks are marked with 'Done' label)
-DONE_TASKS=$(echo "$TODO_CONTENT" | grep -i 'Done' | sed 's/^/<li>/;s/$/<\/li>/')
-
-# Extract Unit Test Results from the $2 file (Each result is assumed to be a line in the file)
-TEST_RESULTS=$(echo "$TEST_CONTENT" | sed 's/^/<pre>/;s/$/<\/pre>/')
-
-# Update the Pending Tasks section (only ToDo tasks, listed vertically)
-sed -i "/<ul id=\"pending\">/ { 
-    r /dev/stdin
-    d
-}" /app/index.html <<< "$TODO_TASKS"
-
-# Update the Completed Tasks section (only Done tasks, listed vertically)
-sed -i "/<ul id=\"completed\">/ { 
-    r /dev/stdin
-    d
-}" /app/index.html <<< "$DONE_TASKS"
-
-# Update the Unit Test Results section (listed vertically)
-sed -i "/<pre id=\"unittest\">/ { 
-    r /dev/stdin
-    d
-}" /app/index.html <<< "$TEST_RESULTS"
+# Replace the Unit Test Results section with the actual test results
+sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\<pre id=\"unittest\">\n$UNIT_TEST_RESULTS\n</pre>" $HTML_FILE
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
