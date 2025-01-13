@@ -12,24 +12,20 @@ DONE_TASKS=$(grep -A 1000 "Done Tasks:" "$1" | sed '1d')
 # Read the Unit Test results from $2
 UNIT_TEST_RESULTS=$(cat "$2")
 
-# Use awk inside the sed command to add <li> tags around each task
+# Use awk inside the sed command to add <li> tags around each task for Pending Tasks
 sed -i "/<ul id=\"pending\">/,/<\/ul>/c\\
-<ul id=\"pending\">\\
-$(echo "$TODO_TASKS" | awk '{print "<li>" $0 "</li>"}')\\
+<ul id=\"pending\">$(echo "$TODO_TASKS" | awk '{print "<li>" $0 "</li>"}')\\
 </ul>" "$HTML_FILE"
 
-
-# Replace the Completed Tasks section with Done tasks
+# Replace the Completed Tasks section with Done tasks, using awk to wrap each task in <li> tags
 sed -i "/<ul id=\"completed\">/,/<\/ul>/c\\
-<ul id=\"completed\">\\
-$DONE_TASKS\\
+<ul id=\"completed\">$(echo "$DONE_TASKS" | awk '{print "<li>" $0 "</li>"}')\\
 </ul>" "$HTML_FILE"
 
-# Replace the Unit Test Results section with the actual test results
+# Replace the Unit Test Results section with the actual test results, no <li> needed for unit tests
 sed -i "/<pre id=\"unittest\">/,/<\/pre>/c\\
-<pre id=\"unittest\">\\
-$UNIT_TEST_RESULTS\\
-</pre>" "$HTML_FILE"
+<pre id=\"unittest\">$UNIT_TEST_RESULTS</pre>" "$HTML_FILE"
+
 
 # Configure Git and push changes
 git config --global user.name "github-actions"
