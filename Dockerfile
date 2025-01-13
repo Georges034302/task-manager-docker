@@ -4,14 +4,16 @@ FROM python:3.9-slim
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the entire repository into the container
-COPY . /app
-
-# Install any required Python packages (you can list them in a requirements.txt if needed)
-# RUN pip install --no-cache-dir -r requirements.txt
+# Install necessary dependencies including git
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+    
+# Copy only the repository directory into the container
+COPY . /app/
 
 # Make sure the entrypoint script is executable
-RUN chmod +x .github/scripts/entrypoint.sh
+RUN chmod +x /app/.github/scripts/entrypoint.sh
 
 # Set the entry point for the container
-ENTRYPOINT ["/bin/bash", ".github/scripts/entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "/app/.github/scripts/entrypoint.sh"]

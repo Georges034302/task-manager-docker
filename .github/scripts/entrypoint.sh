@@ -1,10 +1,20 @@
 #!/bin/bash
 
-# Run todo.py and capture the output
-TASKS_OUTPUT=$(python3 todo.py)
+echo "======================"
+echo "Executing todo.py"
+echo "======================"
+python3 /app/.github/scripts/todo.py > /app/todo_output.txt
 
-# Run test-todo.py and capture the output
-TEST_OUTPUT=$(python3 test-todo.py)
+echo "======================"
+echo "Executing todo-test.py"
+echo "======================"
+python3 /app/.github/scripts/todo-test.py > /app/test_output.txt  # Corrected the filename
 
-# Run update_index.sh with both outputs
-./update_index.sh "$TASKS_OUTPUT" "$TEST_OUTPUT"
+echo "======================"
+echo "Executing update_index.sh"
+echo "======================"
+bash /app/.github/scripts/update_index.sh /app/todo_output.txt /app/test_output.txt
+
+echo "======================"
+echo "Done!"
+echo "======================"

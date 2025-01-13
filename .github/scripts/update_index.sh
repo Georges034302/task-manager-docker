@@ -1,32 +1,50 @@
 #!/bin/bash
 
-# Check if input for tasks is provided
-if [ -z "$1" ]; then
-  echo "No tasks provided."
-  exit 1
+# Check if index.html exists
+if [[ ! -f /app/index.html ]]; then
+    echo "Error: /app/index.html not found. Exiting."
+    exit 1
 fi
 
-# Extract tasks
-TASKS=$1
+# Read content from the todo output and test output
+TODO_CONTENT=$(cat "$1" 2>/dev/null || echo "No tasks available.")
+TEST_CONTENT=$(cat "$2" 2>/dev/null || echo "No unit test results available.")
 
-# Split the tasks into two categories: pending and completed
-PENDING_TASKS=""
-COMPLETED_TASKS=""
+# Replace the placeholders in index.html using awk for multiline content
+awk -v todo="$TODO_CONTENT" -v test="$TEST_CONTENT" '
+BEGIN {
+    pending_start = "<ul id=\"pending\">"
+    pending_end = "</ul>"
+    unittest_start = "<pre id=\"unittest\">"
+    unittest_end = "</pre>"
+}
+{
+    if ($0 ~ pending_start) {
+        print $0
+        print todo
+        skip = 1
+    } else if ($0 ~ pending_end) {
+        skip = 0
+        next
+    } else if ($0 ~ unittest_start) {
+        print $0
+        print test
+        skip = 1
+    } else if ($0 ~ unittest_end) {
+        skip = 0
+        next
+    }
+    if (!skip) print $0
+}
+' /app/index.html > /app/index.html.tmp && mv /app/index.html.tmp /app/index.html
 
-# Loop through each task and categorize them
-for TASK in $TASKS; do
-  # Assuming task starts with 'completed' or 'pending'
-  if [[ $TASK == *"completed"* ]]; then
-    COMPLETED_TASKS="$COMPLETED_TASKS<li>$TASK</li>"
-  else
-    PENDING_TASKS="$PENDING_TASKS<li>$TASK</li>"
-  fi
-done
+echo "/app/index.html updated successfully."
 
-# Update Pending Tasks section in index.html
-sed -i "/<ul id='pending'>/a $PENDING_TASKS" index.html
+# Configure Git to use GitHub Actions user and email
+git config --global user.name "github-actions"
+git config --global user.email "github-actions@users.noreply.github.com"
 
-# Update Completed Tasks section in index.html
-sed -i "/<ul id='completed'>/a $COMPLETED_TASKS" index.html
-
-echo "Index updated successfully."
+# Add index.html to git, commit, and push the changes
+git add index.html
+git commit -m "Update index.html with vowel frequency results"
+git push
