@@ -20,4 +20,5 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           echo "Pull Request merged, updating README."
+          chmod +x ./.github/scripts/update_readme.sh
           ./.github/scripts/update_readme.sh
